@@ -44,7 +44,7 @@ def color_house_rows(row):
 # ======================
 # LOAD DATA
 # ======================
-DATA_FILE = "students_with_houses2.xlsx"
+DATA_FILE = "students_with_houses3.xlsx"
 df = pd.read_excel(DATA_FILE)
 
 # Basic cleaning

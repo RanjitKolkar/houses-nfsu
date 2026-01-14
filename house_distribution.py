@@ -1,9 +1,10 @@
 import pandas as pd
 import os
+from collections import defaultdict
 
 DATA_FOLDER = "NFSU DATA"
-OUTPUT_FILE = "students_with_houses2.xlsx"
-HOUSES = ["M", "U", "T", "L"]
+OUTPUT_FILE = "students_with_houses3.xlsx"
+houses = ["M", "U", "T", "L"]
 
 def clean_columns(cols):
     return (
@@ -31,14 +32,22 @@ def load_all_excels():
 
     return pd.concat(all_data, ignore_index=True)
 
-def assign_houses(df):
+
+
+def assign_houses(df,houses):
     df = df.copy()
     df["House"] = None
 
-    # Ensure Semester exists
-    if "Semester" not in df.columns:
-        raise Exception("Semester column not found in data")
+    required_cols = {"Program", "Semester", "Gender"}
+    if not required_cols.issubset(df.columns):
+        raise Exception(f"Missing required columns: {required_cols - set(df.columns)}")
 
+    # Counters
+    gender_counts = defaultdict(lambda: defaultdict(int))
+    semester_counts = defaultdict(lambda: defaultdict(int))
+    program_counts = defaultdict(lambda: defaultdict(int))
+
+    # Process program-wise for locality
     for program in df["Program"].dropna().unique():
         prog_df = df[df["Program"] == program]
 
@@ -48,15 +57,31 @@ def assign_houses(df):
             for gender in sem_df["Gender"].dropna().unique():
                 group = sem_df[sem_df["Gender"] == gender]
 
-                for i, idx in enumerate(group.index):
-                    df.loc[idx, "House"] = HOUSES[i % len(HOUSES)]
+                for idx in group.index:
+                    # Choose house with minimum usage for this gender
+                    house = min(
+                        houses,
+                        key=lambda h: (
+                            gender_counts[gender][h],
+                            semester_counts[(program, semester)][h],
+                            program_counts[program][h]
+                        )
+                    )
+
+                    df.loc[idx, "House"] = house
+
+                    # Update counters
+                    gender_counts[gender][house] += 1
+                    semester_counts[(program, semester)][house] += 1
+                    program_counts[program][house] += 1
 
     return df
 
 
+
 def main():
     df = load_all_excels()
-    df = assign_houses(df)
+    df = assign_houses(df, houses)
 
     if df["House"].isna().any():
         raise Exception("Some students were not assigned houses!")
