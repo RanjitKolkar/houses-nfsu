@@ -26,6 +26,18 @@ def semester_to_year(sem):
             return "Fourth Year"
     except:
         return None
+# ----------------------
+# Row color function
+# ----------------------
+def color_house_rows(row):
+    house_colors = {
+        "M": "background-color: #e3f2fd; color: black;",  # Light Blue
+        "L": "background-color: #e8f5e9; color: black;",  # Light Green
+        "T": "background-color: #fff3e0; color: black;",  # Light Orange
+        "D": "background-color: #fce4ec; color: black;",  # Light Pink
+    }
+    return [house_colors.get(row["House"], "color: black;")] * len(row)
+
 
 # ======================
 # LOAD DATA
@@ -138,17 +150,6 @@ display_cols = [
 
 display_cols = [c for c in display_cols if c in filtered.columns]
 
-# ----------------------
-# Row color function
-# ----------------------
-def color_house_rows(row):
-    house_colors = {
-        "M": "background-color: #e3f2fd; color: black;",  # Light Blue
-        "L": "background-color: #e8f5e9; color: black;",  # Light Green
-        "T": "background-color: #fff3e0; color: black;",  # Light Orange
-        "D": "background-color: #fce4ec; color: black;",  # Light Pink
-    }
-    return [house_colors.get(row["House"], "color: black;")] * len(row)
 
 styled_df = (
     filtered[display_cols]
