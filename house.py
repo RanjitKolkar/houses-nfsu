@@ -80,7 +80,7 @@ for key, name in house_names.items():
     st.markdown(
         f"""
         <div style="
-            {house_colors[key]}
+            {color_house_rows[key]}
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 10px;
