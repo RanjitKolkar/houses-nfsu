@@ -30,7 +30,7 @@ def semester_to_year(sem):
 # ======================
 # LOAD DATA
 # ======================
-DATA_FILE = "students_with_houses1.xlsx"
+DATA_FILE = "students_with_houses2.xlsx"
 df = pd.read_excel(DATA_FILE)
 
 # Basic cleaning
@@ -45,12 +45,40 @@ df["Year"] = df["Semester"].apply(semester_to_year)
 # ======================
 # TITLE
 # ======================
-st.title("🏠Student House Distribution 2025 ")
-
+st.ti
 # ======================
 # SIDEBAR FILTERS
 # ======================
-st.sidebar.header("🔎 Filters")
+st.sidebar.header("🔎 Filters")tle("🏠Student House Distribution 2025 ")
+
+house_names = {
+    "M": "Majestic Maximus",
+    "L": "Ultra Unicorn",
+    "T": "Timeless Tigris",
+    "D": "Legendary Leo",
+}
+
+# ---------------------------
+# DISPLAY HOUSES (DOWNWARD)
+# ---------------------------
+st.subheader("🏡 Houses")
+
+for key, name in house_names.items():
+    st.markdown(
+        f"""
+        <div style="
+            {house_colors[key]}
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: 600;
+        ">
+        {key} – {name}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 programs = ["All"] + sorted(df["Program"].dropna().unique().tolist())
 years = ["All"] + sorted(df["Year"].dropna().unique().tolist())
@@ -114,9 +142,9 @@ display_cols = [c for c in display_cols if c in filtered.columns]
 # ----------------------
 def color_house_rows(row):
     house_colors = {
-        "A": "background-color: #e3f2fd; color: black;",  # Light Blue
-        "B": "background-color: #e8f5e9; color: black;",  # Light Green
-        "C": "background-color: #fff3e0; color: black;",  # Light Orange
+        "M": "background-color: #e3f2fd; color: black;",  # Light Blue
+        "L": "background-color: #e8f5e9; color: black;",  # Light Green
+        "U": "background-color: #fff3e0; color: black;",  # Light Orange
         "D": "background-color: #fce4ec; color: black;",  # Light Pink
     }
     return [house_colors.get(row["House"], "color: black;")] * len(row)
