@@ -74,24 +74,47 @@ house_names = {
 # ---------------------------
 # DISPLAY HOUSES (DOWNWARD)
 # ---------------------------
+import streamlit as st
+
+# ---------------------------
+# HOUSE DATA (MUST EXIST)
+# ---------------------------
+house_names = {
+    "M": "Majestic Maximus",
+    "L": "Ultra Unicorn",
+    "T": "Timeless Tigris",
+    "D": "Legendary Leo",
+}
+
+house_colors = {
+    "M": "background-color: #e3f2fd; color: black;",  # Light Blue
+    "L": "background-color: #e8f5e9; color: black;",  # Light Green
+    "T": "background-color: #fff3e0; color: black;",  # Light Orange
+    "D": "background-color: #fce4ec; color: black;",  # Light Pink
+}
+
+# ---------------------------
+# DISPLAY
+# ---------------------------
 st.subheader("🏡 Houses")
 
 for key, name in house_names.items():
     st.markdown(
         f"""
         <div style="
-            {color_house_rows[key]}
+            {house_colors.get(key, '')}
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 10px;
             font-size: 18px;
             font-weight: 600;
         ">
-        {key} – {name}
+            {key} – {name}
         </div>
         """,
         unsafe_allow_html=True
     )
+
 
 programs = ["All"] + sorted(df["Program"].dropna().unique().tolist())
 years = ["All"] + sorted(df["Year"].dropna().unique().tolist())
