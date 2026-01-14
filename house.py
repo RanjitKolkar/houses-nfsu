@@ -45,11 +45,12 @@ df["Year"] = df["Semester"].apply(semester_to_year)
 # ======================
 # TITLE
 # ======================
-st.ti
+st.title("🏠Student House Distribution 2025 ")
+
 # ======================
 # SIDEBAR FILTERS
 # ======================
-st.sidebar.header("🔎 Filters")tle("🏠Student House Distribution 2025 ")
+st.sidebar.header("🔎 Filters")
 
 house_names = {
     "M": "Majestic Maximus",
@@ -144,7 +145,7 @@ def color_house_rows(row):
     house_colors = {
         "M": "background-color: #e3f2fd; color: black;",  # Light Blue
         "L": "background-color: #e8f5e9; color: black;",  # Light Green
-        "U": "background-color: #fff3e0; color: black;",  # Light Orange
+        "T": "background-color: #fff3e0; color: black;",  # Light Orange
         "D": "background-color: #fce4ec; color: black;",  # Light Pink
     }
     return [house_colors.get(row["House"], "color: black;")] * len(row)
