@@ -93,6 +93,45 @@ c4.metric("Total Houses", filtered["House"].nunique())
 # SUMMARY TABLE
 # ======================
 
+# ======================
+# STUDENT LIST (LIMITED COLUMNS)
+# ======================
+st.subheader("📋 Student List with House Assigned")
+
+display_cols = [
+    "Enrollment No",
+    "Program",
+    "Year",
+    "Student Name",
+    "Gender",
+    "House"
+]
+
+display_cols = [c for c in display_cols if c in filtered.columns]
+
+# ----------------------
+# Row color function
+# ----------------------
+def color_house_rows(row):
+    house_colors = {
+        "A": "background-color: #e3f2fd; color: black;",  # Light Blue
+        "B": "background-color: #e8f5e9; color: black;",  # Light Green
+        "C": "background-color: #fff3e0; color: black;",  # Light Orange
+        "D": "background-color: #fce4ec; color: black;",  # Light Pink
+    }
+    return [house_colors.get(row["House"], "color: black;")] * len(row)
+
+styled_df = (
+    filtered[display_cols]
+    .style
+    .apply(color_house_rows, axis=1)
+)
+
+st.dataframe(
+    styled_df,
+    use_container_width=True,
+    height=520
+)
 
 # ======================
 # BAR CHART – HOUSE vs PROGRAM
@@ -145,42 +184,3 @@ fig3 = px.pie(
 
 st.plotly_chart(fig3, use_container_width=True)
 
-# ======================
-# STUDENT LIST (LIMITED COLUMNS)
-# ======================
-st.subheader("📋 Student List with House Assigned")
-
-display_cols = [
-    "Enrollment No",
-    "Program",
-    "Year",
-    "Student Name",
-    "Gender",
-    "House"
-]
-
-display_cols = [c for c in display_cols if c in filtered.columns]
-
-# ----------------------
-# Row color function
-# ----------------------
-def color_house_rows(row):
-    house_colors = {
-        "A": "background-color: #e3f2fd; color: black;",  # Light Blue
-        "B": "background-color: #e8f5e9; color: black;",  # Light Green
-        "C": "background-color: #fff3e0; color: black;",  # Light Orange
-        "D": "background-color: #fce4ec; color: black;",  # Light Pink
-    }
-    return [house_colors.get(row["House"], "color: black;")] * len(row)
-
-styled_df = (
-    filtered[display_cols]
-    .style
-    .apply(color_house_rows, axis=1)
-)
-
-st.dataframe(
-    styled_df,
-    use_container_width=True,
-    height=520
-)
