@@ -45,7 +45,7 @@ df["Year"] = df["Semester"].apply(semester_to_year)
 # ======================
 # TITLE
 # ======================
-st.title("🏠 NFSU Goa – Student House Distribution Dashboard (Year-wise)")
+st.title("🏠Student House Distribution 2025 ")
 
 # ======================
 # SIDEBAR FILTERS
