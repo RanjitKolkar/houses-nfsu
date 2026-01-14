@@ -24,6 +24,8 @@ def semester_to_year(sem):
             return "Third Year"
         elif sem in [7, 8]:
             return "Fourth Year"
+        elif sem in [9, 10]:
+            return "Fifth Year"
     except:
         return None
 # ----------------------
