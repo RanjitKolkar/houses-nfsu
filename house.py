@@ -162,38 +162,25 @@ display_cols = [
 display_cols = [c for c in display_cols if c in filtered.columns]
 
 # ----------------------
-# Add House Badge Column
+# Row color function
 # ----------------------
-def house_badge(house):
-    colors = {
-        "A": "#1976d2",  # Blue
-        "B": "#2e7d32",  # Green
-        "C": "#ef6c00",  # Orange
-        "D": "#c2185b",  # Pink
+def color_house_rows(row):
+    house_colors = {
+        "A": "background-color: #e3f2fd",  # Light Blue
+        "B": "background-color: #e8f5e9",  # Light Green
+        "C": "background-color: #fff3e0",  # Light Orange
+        "D": "background-color: #fce4ec",  # Light Pink
     }
-    return f"""
-    <span style="
-        background-color:{colors.get(house,'#777')};
-        color:white;
-        padding:4px 10px;
-        border-radius:12px;
-        font-weight:600;
-        font-size:0.85rem;
-        display:inline-block;
-        min-width:28px;
-        text-align:center;
-    ">
-        {house}
-    </span>
-    """
+    return [house_colors.get(row["House"], "")] * len(row)
 
-table_df = filtered[display_cols].copy()
-table_df["House"] = table_df["House"].apply(house_badge)
+styled_df = (
+    filtered[display_cols]
+    .style
+    .apply(color_house_rows, axis=1)
+)
 
-# ----------------------
-# Render as HTML table
-# ----------------------
-st.markdown(
-    table_df.to_html(escape=False, index=False),
-    unsafe_allow_html=True
+st.dataframe(
+    styled_df,
+    use_container_width=True,
+    height=520
 )
