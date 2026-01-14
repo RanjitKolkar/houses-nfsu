@@ -1,68 +1,186 @@
+import streamlit as st
 import pandas as pd
-import os
+import plotly.express as px
 
-DATA_FOLDER = "NFSU DATA"
-OUTPUT_FILE = "students_with_houses1.xlsx"
-HOUSES = ["A", "B", "C", "D"]
+# ======================
+# PAGE CONFIG
+# ======================
+st.set_page_config(
+    page_title="NFSU House Distribution",
+    layout="wide"
+)
 
-def clean_columns(cols):
-    return (
-        cols.astype(str)
-        .str.strip()
-        .str.replace("\xa0", " ", regex=False)
-        .str.replace(r"\s+", " ", regex=True)
-    )
+# ======================
+# HELPERS
+# ======================
+def semester_to_year(sem):
+    try:
+        sem = int(sem)
+        if sem in [1, 2]:
+            return "First Year"
+        elif sem in [3, 4]:
+            return "Second Year"
+        elif sem in [5, 6]:
+            return "Third Year"
+        elif sem in [7, 8]:
+            return "Fourth Year"
+    except:
+        return None
 
-def load_all_excels():
-    all_data = []
-    for file in os.listdir(DATA_FOLDER):
-        if file.endswith(".xlsx"):
-            path = os.path.join(DATA_FOLDER, file)
-            df = pd.read_excel(path, header=2)
-            df.columns = clean_columns(df.columns)
+# ======================
+# LOAD DATA
+# ======================
+DATA_FILE = "students_with_houses1.xlsx"
+df = pd.read_excel(DATA_FILE)
 
-            if "Stream" in df.columns:
-                df["Program"] = df["Stream"]
-            else:
-                df["Program"] = os.path.splitext(file)[0]
+# Basic cleaning
+df["Program"] = df["Program"].astype(str).str.strip()
+df["Gender"] = df["Gender"].astype(str).str.upper().str.strip()
+df["House"] = df["House"].astype(str).str.strip()
+df["Semester"] = df["Semester"].astype(str).str.strip()
 
-            df["Gender"] = df["Gender"].astype(str).str.upper().str.strip()
-            all_data.append(df)
+# Create Academic Year column
+df["Year"] = df["Semester"].apply(semester_to_year)
 
-    return pd.concat(all_data, ignore_index=True)
+# ======================
+# TITLE
+# ======================
+st.title("🏠 NFSU Goa – Student House Distribution Dashboard (Year-wise)")
 
-def assign_houses(df):
-    df = df.copy()
-    df["House"] = None
+# ======================
+# SIDEBAR FILTERS
+# ======================
+st.sidebar.header("🔎 Filters")
 
-    # Ensure Semester exists
-    if "Semester" not in df.columns:
-        raise Exception("Semester column not found in data")
+programs = ["All"] + sorted(df["Program"].dropna().unique().tolist())
+years = ["All"] + sorted(df["Year"].dropna().unique().tolist())
+genders = ["All"] + sorted(df["Gender"].dropna().unique().tolist())
+houses = ["All"] + sorted(df["House"].dropna().unique().tolist())
 
-    for program in df["Program"].dropna().unique():
-        prog_df = df[df["Program"] == program]
+sel_program = st.sidebar.selectbox("🎓 Program / Stream", programs)
+sel_year = st.sidebar.selectbox("📘 Academic Year", years)
+sel_gender = st.sidebar.selectbox("⚧️ Gender", genders)
+sel_house = st.sidebar.selectbox("🏠 House", houses)
 
-        for semester in prog_df["Semester"].dropna().unique():
-            sem_df = prog_df[prog_df["Semester"] == semester]
+# ======================
+# APPLY FILTERS
+# ======================
+filtered = df.copy()
 
-            for gender in sem_df["Gender"].dropna().unique():
-                group = sem_df[sem_df["Gender"] == gender]
+if sel_program != "All":
+    filtered = filtered[filtered["Program"] == sel_program]
 
-                for i, idx in enumerate(group.index):
-                    df.loc[idx, "House"] = HOUSES[i % len(HOUSES)]
+if sel_year != "All":
+    filtered = filtered[filtered["Year"] == sel_year]
 
-    return df
+if sel_gender != "All":
+    filtered = filtered[filtered["Gender"] == sel_gender]
+
+if sel_house != "All":
+    filtered = filtered[filtered["House"] == sel_house]
+
+# ======================
+# SUMMARY CARDS
+# ======================
+c1, c2, c3, c4 = st.columns(4)
+
+c1.metric("Total Students", len(filtered))
+c2.metric("Male Students", len(filtered[filtered["Gender"] == "M"]))
+c3.metric("Female Students", len(filtered[filtered["Gender"] == "F"]))
+c4.metric("Total Houses", filtered["House"].nunique())
+
+# ======================
+# SUMMARY TABLE
+# ======================
 
 
-def main():
-    df = load_all_excels()
-    df = assign_houses(df)
+# ======================
+# BAR CHART – HOUSE vs PROGRAM
+# ======================
+st.subheader("📈 House Distribution Across Programs")
 
-    if df["House"].isna().any():
-        raise Exception("Some students were not assigned houses!")
+fig1 = px.bar(
+    filtered.groupby(["House", "Program"])
+    .size()
+    .reset_index(name="Count"),
+    x="House",
+    y="Count",
+    color="Program",
+    barmode="group",
+    title="House-wise Student Distribution by Program"
+)
 
-    df.to_excel(OUTPUT_FILE, index=False)
-    print(f"✅ House assignment complete. File saved as {OUTPUT_FILE}")
+st.plotly_chart(fig1, use_container_width=True)
 
-if __name__ == "__main__":
-    main()
+# ======================
+# BAR CHART – HOUSE vs YEAR
+# ======================
+st.subheader("📈 House Distribution Across Academic Years")
+
+fig2 = px.bar(
+    filtered.groupby(["House", "Year"])
+    .size()
+    .reset_index(name="Count"),
+    x="House",
+    y="Count",
+    color="Year",
+    barmode="group",
+    title="House-wise Student Distribution by Academic Year"
+)
+
+st.plotly_chart(fig2, use_container_width=True)
+
+# ======================
+# PIE CHART – GENDER
+# ======================
+st.subheader("📊 Gender Distribution (Filtered View)")
+
+fig3 = px.pie(
+    filtered,
+    names="Gender",
+    color="Gender",
+    color_discrete_map={"M": "#1f77b4", "F": "#ff69b4"},
+    title="Gender Distribution"
+)
+
+st.plotly_chart(fig3, use_container_width=True)
+
+# ======================
+# STUDENT LIST (LIMITED COLUMNS)
+# ======================
+st.subheader("📋 Student List with House Assigned")
+
+display_cols = [
+    "Enrollment No",
+    "Program",
+    "Year",
+    "Student Name",
+    "Gender",
+    "House"
+]
+
+display_cols = [c for c in display_cols if c in filtered.columns]
+
+# ----------------------
+# Row color function
+# ----------------------
+def color_house_rows(row):
+    house_colors = {
+        "A": "background-color: #e3f2fd",  # Light Blue
+        "B": "background-color: #e8f5e9",  # Light Green
+        "C": "background-color: #fff3e0",  # Light Orange
+        "D": "background-color: #fce4ec",  # Light Pink
+    }
+    return [house_colors.get(row["House"], "")] * len(row)
+
+styled_df = (
+    filtered[display_cols]
+    .style
+    .apply(color_house_rows, axis=1)
+)
+
+st.dataframe(
+    styled_df,
+    use_container_width=True,
+    height=520
+)
