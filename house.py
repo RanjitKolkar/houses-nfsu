@@ -11,76 +11,41 @@ st.set_page_config(
 )
 
 # ======================
-# HELPERS
+# LOAD DATA (CSV ONLY)
 # ======================
-def semester_to_year(sem):
-    try:
-        sem = int(sem)
-        if sem in [1, 2]:
-            return "First Year"
-        elif sem in [3, 4]:
-            return "Second Year"
-        elif sem in [5, 6]:
-            return "Third Year"
-        elif sem in [7, 8]:
-            return "Fourth Year"
-        elif sem in [9, 10]:
-            return "Fifth Year"
-    except:
-        return None
+DATA_FILE = "exported.csv"
+df = pd.read_csv(DATA_FILE)
+
 # ----------------------
-# Row color function
+# BASIC CLEANING
 # ----------------------
-def color_house_rows(row):
-    house_colors = {
-        "M": "background-color: #e3f2fd; color: black;",  # Light Blue
-        "L": "background-color: #e8f5e9; color: black;",  # Light Green
-        "T": "background-color: #fff3e0; color: black;",  # Light Orange
-        "D": "background-color: #fce4ec; color: black;",  # Light Pink
-    }
-    return [house_colors.get(row["House"], "color: black;")] * len(row)
-
-
-# ======================
-# LOAD DATA
-# ======================
-DATA_FILE = "students_with_houses3.xlsx"
-df = pd.read_excel(DATA_FILE)
-
-# Basic cleaning
 df["Program"] = df["Program"].astype(str).str.strip()
 df["Gender"] = df["Gender"].astype(str).str.upper().str.strip()
 df["House"] = df["House"].astype(str).str.strip()
-df["Semester"] = df["Semester"].astype(str).str.strip()
+df["Year"] = df["Year"].astype(str).str.strip()
 
-# Create Academic Year column
-df["Year"] = df["Semester"].apply(semester_to_year)
+# ======================
+# ROW COLOR FUNCTION
+# ======================
+def color_house_rows(row):
+    house_colors = {
+        "M": "background-color: #e3f2fd; color: black;",
+        "L": "background-color: #e8f5e9; color: black;",
+        "T": "background-color: #fff3e0; color: black;",
+        "D": "background-color: #fce4ec; color: black;",
+    }
+    return [house_colors.get(row["House"], "color: black;")] * len(row)
 
 # ======================
 # TITLE
 # ======================
-st.title("🏠Student House Distribution 2025 ")
+st.title("🏠 Student House Distribution 2025")
 
 # ======================
-# SIDEBAR FILTERS
+# HOUSE LEGEND
 # ======================
-st.sidebar.header("🔎 Filters")
+st.subheader("🏡 Houses")
 
-house_names = {
-    "M": "Majestic Maximus",
-    "L": "Ultra Unicorn",
-    "T": "Timeless Tigris",
-    "D": "Legendary Leo",
-}
-
-# ---------------------------
-# DISPLAY HOUSES (DOWNWARD)
-# ---------------------------
-import streamlit as st
-
-# ---------------------------
-# HOUSE DATA (MUST EXIST)
-# ---------------------------
 house_names = {
     "M": "Majestic Maximus",
     "L": "Ultra Unicorn",
@@ -89,22 +54,17 @@ house_names = {
 }
 
 house_colors = {
-    "M": "background-color: #e3f2fd; color: black;",  # Light Blue
-    "L": "background-color: #e8f5e9; color: black;",  # Light Green
-    "T": "background-color: #fff3e0; color: black;",  # Light Orange
-    "D": "background-color: #fce4ec; color: black;",  # Light Pink
+    "M": "background-color: #e3f2fd; color: black;",
+    "L": "background-color: #e8f5e9; color: black;",
+    "T": "background-color: #fff3e0; color: black;",
+    "D": "background-color: #fce4ec; color: black;",
 }
-
-# ---------------------------
-# DISPLAY
-# ---------------------------
-st.subheader("🏡 Houses")
 
 for key, name in house_names.items():
     st.markdown(
         f"""
         <div style="
-            {house_colors.get(key, '')}
+            {house_colors[key]}
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 10px;
@@ -117,14 +77,18 @@ for key, name in house_names.items():
         unsafe_allow_html=True
     )
 
+# ======================
+# SIDEBAR FILTERS
+# ======================
+st.sidebar.header("🔎 Filters")
 
-programs = ["All"] + sorted(df["Program"].dropna().unique().tolist())
-years = ["All"] + sorted(df["Year"].dropna().unique().tolist())
-genders = ["All"] + sorted(df["Gender"].dropna().unique().tolist())
-houses = ["All"] + sorted(df["House"].dropna().unique().tolist())
+programs = ["All"] + sorted(df["Program"].dropna().unique())
+years = ["All"] + sorted(df["Year"].dropna().unique())
+genders = ["All"] + sorted(df["Gender"].dropna().unique())
+houses = ["All"] + sorted(df["House"].dropna().unique())
 
-sel_program = st.sidebar.selectbox("🎓 Program / Stream", programs)
-sel_year = st.sidebar.selectbox("📘 Academic Year", years)
+sel_program = st.sidebar.selectbox("🎓 Program", programs)
+sel_year = st.sidebar.selectbox("📘 Year", years)
 sel_gender = st.sidebar.selectbox("⚧️ Gender", genders)
 sel_house = st.sidebar.selectbox("🏠 House", houses)
 
@@ -146,7 +110,7 @@ if sel_house != "All":
     filtered = filtered[filtered["House"] == sel_house]
 
 # ======================
-# SUMMARY CARDS
+# SUMMARY METRICS
 # ======================
 c1, c2, c3, c4 = st.columns(4)
 
@@ -156,15 +120,12 @@ c3.metric("Female Students", len(filtered[filtered["Gender"] == "F"]))
 c4.metric("Total Houses", filtered["House"].nunique())
 
 # ======================
-# SUMMARY TABLE
+# STUDENT TABLE (READ ONLY)
 # ======================
-
-# ======================
-# STUDENT LIST (LIMITED COLUMNS)
-# ======================
-st.subheader("📋 Student List with House Assigned")
+st.subheader("📋 Student List (Read-Only)")
 
 display_cols = [
+    "Sl No",
     "Enrollment No",
     "Program",
     "Year",
@@ -172,9 +133,6 @@ display_cols = [
     "Gender",
     "House"
 ]
-
-display_cols = [c for c in display_cols if c in filtered.columns]
-
 
 styled_df = (
     filtered[display_cols]
@@ -191,7 +149,7 @@ st.dataframe(
 # ======================
 # BAR CHART – HOUSE vs PROGRAM
 # ======================
-st.subheader("📈 House Distribution Across Programs")
+st.subheader("📈 House Distribution by Program")
 
 fig1 = px.bar(
     filtered.groupby(["House", "Program"])
@@ -200,8 +158,7 @@ fig1 = px.bar(
     x="House",
     y="Count",
     color="Program",
-    barmode="group",
-    title="House-wise Student Distribution by Program"
+    barmode="group"
 )
 
 st.plotly_chart(fig1, use_container_width=True)
@@ -209,7 +166,7 @@ st.plotly_chart(fig1, use_container_width=True)
 # ======================
 # BAR CHART – HOUSE vs YEAR
 # ======================
-st.subheader("📈 House Distribution Across Academic Years")
+st.subheader("📈 House Distribution by Year")
 
 fig2 = px.bar(
     filtered.groupby(["House", "Year"])
@@ -218,8 +175,7 @@ fig2 = px.bar(
     x="House",
     y="Count",
     color="Year",
-    barmode="group",
-    title="House-wise Student Distribution by Academic Year"
+    barmode="group"
 )
 
 st.plotly_chart(fig2, use_container_width=True)
@@ -227,15 +183,13 @@ st.plotly_chart(fig2, use_container_width=True)
 # ======================
 # PIE CHART – GENDER
 # ======================
-st.subheader("📊 Gender Distribution (Filtered View)")
+st.subheader("📊 Gender Distribution")
 
 fig3 = px.pie(
     filtered,
     names="Gender",
     color="Gender",
-    color_discrete_map={"M": "#1f77b4", "F": "#ff69b4"},
-    title="Gender Distribution"
+    color_discrete_map={"M": "#1f77b4", "F": "#ff69b4"}
 )
 
 st.plotly_chart(fig3, use_container_width=True)
-
